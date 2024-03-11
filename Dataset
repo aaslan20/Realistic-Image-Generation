@@ -1,0 +1,66 @@
+import torch
+from torch.utils.data import Dataset
+from torchvision import transforms
+from PIL import Image
+import os
+import pandas as pd
+
+path = "GSTRB/Training/"
+
+
+class CustomTrafficSignDataset(Dataset):
+    def __init__(self, root_dir, transform=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        self.classes = sorted(os.listdir(root_dir))
+        self.data = self.load_data()
+
+    def load_data(self):
+        data = []
+        for class_idx, class_name in enumerate(self.classes):
+            class_path = os.path.join(self.root_dir, class_name)
+            csv_path = os.path.join(class_path, "{}".format(class_name) + ".csv")
+
+
+            # Assuming the CSV file has columns like 'Width', 'Height', 'Roi.X1', 'Roi.Y1', 'Roi.X2', 'Roi.Y2', 'ClassId'
+            df = pd.read_csv(csv_path)
+
+            for index, row in df.iterrows():
+                data.append({
+                    'image_path': os.path.join(class_path, row['filename']),
+                    'width': row['Width'],
+                    'height': row['Height'],
+                    'roi': (row['Roi.X1'], row['Roi.Y1'], row['Roi.X2'], row['Roi.Y2']),
+                    'class_id': row['ClassId'],
+                })
+
+        return data
+
+    def __getitem__(self, idx):
+        sample = self.data[idx]
+        image_path, width, height, roi, class_id = (
+            sample['image_path'],
+            sample['width'],
+            sample['height'],
+            sample['roi'],
+            sample['class_id']
+        )
+
+        image = Image.open(image_path)
+
+        # You can use width, height, roi, and class_id as needed in your code
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, class_id
+
+
+root_dir = "GSTRB/Training/"
+
+
+transform = transforms.Compose([
+    transforms.ToTensor()
+])
+
+dataset = CustomTrafficSignDataset(root_dir=root_dir, transform=transform)
