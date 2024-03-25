@@ -29,7 +29,6 @@ class Generator(nn.Module):
         layers.append(nn.ConvTranspose2d(config.output[-2], config.output[-1], config.kernel[-1],
                                         config.stride[-1], config.padding[-1], bias=False))
         layers.append(nn.Tanh())
-
         self.network = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -49,9 +48,7 @@ class Discriminator(nn.Module):
        layers.append(nn.Conv2d(config.output[-2], config.output[-1], config.kernel[-1],
                                         config.stride[-1], config.padding[-1]))
        layers.append(nn.Sigmoid())
-
        self.network = nn.Sequential(*layers)
-
 
     def forward(self, x):
       return self.network(x)
@@ -84,8 +81,7 @@ class CGenerator(nn.Module):
       embedded_labels = self.embedding(labels).unsqueeze(2).unsqueeze(3)
       embedded_labels = embedded_labels.expand(x.size(0), -1, x.size(2), x.size(3))
       x = torch.cat((x, embedded_labels), dim=1)
-      x = self.network(x)
-      return x
+      return self.network(x)
 
 class CDiscriminator(nn.Module):
   def __init__(self, config):
@@ -105,9 +101,7 @@ class CDiscriminator(nn.Module):
 
     layers.append(nn.Conv2d(config.output[-2], config.output[-1], config.kernel[-1],
                                         config.stride[-1], config.padding[-1]))
-                                        
     layers.append(nn.Sigmoid())
-
     self.network = nn.Sequential(*layers)
 
   def forward(self, x, labels):
